@@ -60,11 +60,17 @@ raw = mne.io.read_raw_fif(raw_file, preload=True, verbose=True)
 orig_sfreq = raw.info['sfreq']
 print(f"  {len(raw.ch_names)} channels, {orig_sfreq:.1f} Hz → {sfreq:.1f} Hz, {raw.times[-1]:.1f} s")
 
-# ── Plot 1: PSD before ────────────────────────────────────────────────────────
+# ── Plot 1: PSD before (full original spectrum, mark target Nyquist) ──────────
 psd_before_path = None
 try:
     fig_before = raw.plot_psd(fmax=orig_sfreq / 2 - 1, show=False)
-    fig_before.suptitle(f'PSD Before Resampling ({orig_sfreq:.0f} Hz)', y=1.01)
+    fig_before.suptitle(
+        f'PSD Before Resampling  |  {orig_sfreq:.0f} Hz → {sfreq:.0f} Hz', y=1.02)
+    # Mark the target Nyquist on every axis so user can see the future cutoff
+    for ax in fig_before.axes:
+        ax.axvline(sfreq / 2, color='red', linestyle='--', linewidth=1.2,
+                   label=f'Target Nyquist ({sfreq/2:.0f} Hz)')
+        ax.legend(fontsize=7, loc='upper right')
     psd_before_path = os.path.join('out_figs', 'psd_before.png')
     fig_before.savefig(psd_before_path, dpi=150, bbox_inches='tight')
     plt.close(fig_before)
@@ -77,11 +83,12 @@ raw.resample(sfreq, npad=npad, window=window, pad=pad,
              stim_picks=stim_picks, events=events_val, n_jobs=1)
 print(f"  Done. New duration: {raw.times[-1]:.1f} s, {len(raw.times)} samples")
 
-# ── Plot 2: PSD after ─────────────────────────────────────────────────────────
+# ── Plot 2: PSD after (new Nyquist, brick-wall cutoff visible) ────────────────
 psd_after_path = None
 try:
     fig_after = raw.plot_psd(fmax=sfreq / 2 - 1, show=False)
-    fig_after.suptitle(f'PSD After Resampling ({sfreq:.0f} Hz)', y=1.01)
+    fig_after.suptitle(
+        f'PSD After Resampling  |  {sfreq:.0f} Hz  (Nyquist = {sfreq/2:.0f} Hz)', y=1.02)
     psd_after_path = os.path.join('out_figs', 'psd_after.png')
     fig_after.savefig(psd_after_path, dpi=150, bbox_inches='tight')
     plt.close(fig_after)
