@@ -43,6 +43,7 @@ if raw_file and os.path.isdir(raw_file):
 npad        = config.get('npad', 'auto')
 window      = config.get('window', 'boxcar')
 pad         = config.get('pad', 'reflect_limited')
+method      = config.get('method', 'fft')  # 'fft' (default) or 'polyphase'
 events_val  = config.get('events') or None
 events_val  = None if events_val in ('None', 'none', '') else events_val
 
@@ -62,7 +63,7 @@ print(f"  {len(raw.ch_names)} channels, {orig_sfreq:.1f} Hz → {sfreq:.1f} Hz, 
 # ── Plot 1: PSD before ────────────────────────────────────────────────────────
 psd_before_path = None
 try:
-    fig_before = raw.plot_psd(fmax=min(100.0, orig_sfreq / 2 - 1), show=False)
+    fig_before = raw.plot_psd(fmax=orig_sfreq / 2 - 1, show=False)
     fig_before.suptitle(f'PSD Before Resampling ({orig_sfreq:.0f} Hz)', y=1.01)
     psd_before_path = os.path.join('out_figs', 'psd_before.png')
     fig_before.savefig(psd_before_path, dpi=150, bbox_inches='tight')
@@ -71,7 +72,7 @@ except Exception as e:
     print(f"Could not plot PSD before: {e}")
 
 # ── Resample ──────────────────────────────────────────────────────────────────
-print(f"Resampling to {sfreq:.1f} Hz (npad={npad}, window={window}, pad={pad})...")
+print(f"Resampling to {sfreq:.1f} Hz (method={method}, npad={npad}, window={window}, pad={pad})...")
 raw.resample(sfreq, npad=npad, window=window, pad=pad,
              stim_picks=stim_picks, events=events_val, n_jobs=1)
 print(f"  Done. New duration: {raw.times[-1]:.1f} s, {len(raw.times)} samples")
@@ -79,7 +80,7 @@ print(f"  Done. New duration: {raw.times[-1]:.1f} s, {len(raw.times)} samples")
 # ── Plot 2: PSD after ─────────────────────────────────────────────────────────
 psd_after_path = None
 try:
-    fig_after = raw.plot_psd(fmax=min(100.0, sfreq / 2 - 1), show=False)
+    fig_after = raw.plot_psd(fmax=sfreq / 2 - 1, show=False)
     fig_after.suptitle(f'PSD After Resampling ({sfreq:.0f} Hz)', y=1.01)
     psd_after_path = os.path.join('out_figs', 'psd_after.png')
     fig_after.savefig(psd_after_path, dpi=150, bbox_inches='tight')
