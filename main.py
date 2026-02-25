@@ -32,7 +32,6 @@ config = load_config()
 ensure_output_dirs('out_dir', 'out_figs', 'out_report')
 
 # ── Config params ─────────────────────────────────────────────────────────────
-print(f"DEBUG config: {config}")
 raw_file    = config.get('raw') or config.get('fif') or config.get('mne')
 sfreq       = float(config.get('sfreq', 250))
 
@@ -44,8 +43,11 @@ if raw_file and os.path.isdir(raw_file):
 npad        = config.get('npad', 'auto')
 window      = config.get('window', 'boxcar')
 pad         = config.get('pad', 'reflect_limited')
-events_val  = config.get('events', None) or None      # 'None' string → None
-stim_picks  = config.get('stim_picks', None) or None  # 'None' string → None
+events_val  = config.get('events') or None
+events_val  = None if events_val in ('None', 'none', '') else events_val
+
+stim_picks  = config.get('stim_picks') or None
+stim_picks  = None if stim_picks in ('None', 'none', '') else stim_picks
 
 if not raw_file or not os.path.exists(raw_file):
     raise FileNotFoundError(f"Raw FIF file not found: {raw_file!r}. Set 'raw' in config.json.")
