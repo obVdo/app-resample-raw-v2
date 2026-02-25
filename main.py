@@ -32,8 +32,13 @@ config = load_config()
 ensure_output_dirs('out_dir', 'out_figs', 'out_report')
 
 # ── Config params ─────────────────────────────────────────────────────────────
-raw_file    = config.get('raw') or config.get('fif')
+print(f"DEBUG config: {config}")
+raw_file    = config.get('raw') or config.get('fif') or config.get('mne')
 sfreq       = float(config.get('sfreq', 250))
+
+# Brainlife may pass a directory instead of a file — resolve to raw.fif inside it
+if raw_file and os.path.isdir(raw_file):
+    raw_file = os.path.join(raw_file, 'raw.fif')
 
 # Advanced options (match guiomar/app-meeg-resample defaults)
 npad        = config.get('npad', 'auto')
